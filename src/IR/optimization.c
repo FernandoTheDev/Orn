@@ -202,8 +202,8 @@ void optimizeIR(IrContext *ctx, int optLevel) {
         default: maxPasses = 0; break;
     }
     
-    int changed = 0;
     while (maxPasses > 0) {    
+        int changed = 0; // the changed item must be kept inside to ensure that the checks occur correctly
         changed |= constantFolding(ctx);
         changed |= copyProp(ctx);
         changed |= constantFolding(ctx);
