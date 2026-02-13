@@ -10,18 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 #include "../IR/irHelpers.h"
 
 #include "errorHandling.h"
 #include "semanticHelpers.h"
 
 typedef enum {
-  STACK_SIZE_INT = 4,      
-  STACK_SIZE_FLOAT = 4,    
-  STACK_SIZE_BOOL = 1,     
-  STACK_SIZE_STRING = 8,   
-  STACK_SIZE_DOUBLE = 8, 
-  ALIGNMENT = 16
+    STACK_SIZE_INT = 4,      
+    STACK_SIZE_FLOAT = 4,    
+    STACK_SIZE_BOOL = 1,     
+    STACK_SIZE_STRING = 8,   
+    STACK_SIZE_DOUBLE = 8, 
+    ALIGNMENT = 16
 } StackSize;
 
 StackSize getStackSize(DataType type) {
@@ -190,6 +191,11 @@ DataType getOperationResultType(DataType left, DataType right, NodeTypes op) {
     switch (op) {
         case ADD_OP:
         case SUB_OP:
+            // Pointer arithmetic
+            if (left == TYPE_POINTER && right == TYPE_INT) return TYPE_POINTER;
+            if (op == ADD_OP && left == TYPE_INT && right == TYPE_POINTER) return TYPE_POINTER;
+            if (op == SUB_OP && left == TYPE_POINTER && right == TYPE_POINTER) return TYPE_INT;
+            // fall through
         case MUL_OP:
         case DIV_OP:
         case MOD_OP:
@@ -546,6 +552,17 @@ DataType getExpressionType(ASTNode node, TypeCheckContext context) {
 
             return TYPE_INT;
         }
+
+        case BITWISE_NOT: {
+            DataType opType = getExpressionType(node->children, context);
+            if(opType == TYPE_INT) return TYPE_INT;
+            if(opType != TYPE_INT) {
+                REPORT_ERROR(ERROR_INVALID_UNARY_OPERAND, node, context, "Bitwise NOT requires integer operand");
+                return TYPE_UNKNOWN;
+            }
+            return TYPE_UNKNOWN;
+        }
+
         case ADD_OP:
         case SUB_OP:
         case MUL_OP:
@@ -577,6 +594,10 @@ DataType getExpressionType(ASTNode node, TypeCheckContext context) {
             ASTNode targetTypeNode = node->children->brothers;
             return getDataTypeFromNode(targetTypeNode->nodeType);
         case FUNCTION_CALL: {
+            if (!validateFunctionCall(node, context)) {
+                return TYPE_UNKNOWN;
+            }
+
             Symbol funcSymbol = lookupSymbol(context->current, node->start, node->length);
             if (funcSymbol != NULL && funcSymbol->symbolType == SYMBOL_FUNCTION) {
                 return funcSymbol->type;
@@ -831,6 +852,7 @@ static ASTNode getBaseTypeFromPointerChain(ASTNode typeRefNode, int* outPointerL
     return current;
 }
 
+
 /** 
  * @brief Validates if a declaration is properly formed and adds it to the symbol table.
  * @param node AST node representing the variable declaration
@@ -851,6 +873,7 @@ int validateVariableDeclaration(ASTNode node, TypeCheckContext context, int isCo
     }
     
     int isArr = (node->nodeType == ARRAY_VARIABLE_DEFINITION);
+    int isStruct = node->children->children->nodeType == REF_CUSTOM;
     
     // Extract type information
     int pointerLevel = 0;
@@ -955,16 +978,19 @@ int validateVariableDeclaration(ASTNode node, TypeCheckContext context, int isCo
             if (!validateArrayInitialization(newSymbol, initNode, varType, isConst, context)) {
                 return 0;
             }
+        }else if(isStruct){
+            assert(0 && "Struct initialization validation not implemented yet");
+            if(!validateStructInlineInitialization(newSymbol, initNode, varType, isConst, context)){
+                return 0;
+            }
         } else {
-            if (!validateScalarInitialization(newSymbol, node, varType, isConst, 
-                                             isMemRef, context)) {
+            if (!validateScalarInitialization(newSymbol, node, varType, isConst, isMemRef, context)) {
                 return 0;
             }
         }
     } else if (isConst) {
         // Const variables must be initialized
-        reportErrorWithText(ERROR_CONST_MUST_BE_INITIALIZED, node, context,
-                          "Const must be initialized");
+        reportErrorWithText(ERROR_CONST_MUST_BE_INITIALIZED, node, context, "Const must be initialized");
         return 0;
     }
     
@@ -1427,7 +1453,6 @@ int validateReturnStatement(ASTNode node, TypeCheckContext context) {
     }
 
     funcSym->returnedVar = lookupSymbol(context->current, node->children->start, node->children->length);
-    printf("return type is %s, expected %s\n", getTypeName(returnType), getTypeName(expectedType));
 
     return 1;
 }
@@ -1722,7 +1747,7 @@ int typeCheckNode(ASTNode node, TypeCheckContext context) {
             success = validateAssignment(node, context);
             break;
         case LET_DEC:
-        case CONST_DEC :
+        case CONST_DEC : {
             ASTNode varDef = node->children;
             if(!varDef){
                 repError(ERROR_INTERNAL_PARSER_ERROR, "Declaration wrapper has no child");
@@ -1731,6 +1756,7 @@ int typeCheckNode(ASTNode node, TypeCheckContext context) {
             int isConst = node->nodeType == CONST_DEC;
             success = validateVariableDeclaration(varDef, context, isConst);
             break;
+        }
         case FUNCTION_DEFINITION:
             success = validateFunctionDef(node, context);
             break;
@@ -1820,6 +1846,7 @@ int typeCheckNode(ASTNode node, TypeCheckContext context) {
         case PRE_DECREMENT:
         case POST_INCREMENT:
         case POST_DECREMENT:
+        case BITWISE_NOT:
             success = typeCheckChildren(node, context);
             if (success) {
                 DataType resultType = getExpressionType(node, context);
