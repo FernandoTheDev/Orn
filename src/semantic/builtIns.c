@@ -41,7 +41,15 @@ static BuiltInFunction builtInFunctions[] = {
         .paramNames = NULL,
         .paramCount = 1,
         .id = BUILTIN_PRINT_BOOL
-    }
+    },
+    {
+        .name = "print",
+        .returnType = TYPE_VOID,
+        .paramTypes = NULL,
+        .paramNames = NULL,
+        .paramCount = 1,
+        .id = BUILTIN_PRINT_DOUBLE
+    },
 };
 
 static int builtInFnCount = sizeof(builtInFunctions) / sizeof(BuiltInFunction);
@@ -52,7 +60,7 @@ static void initBuiltInsParams() {
     builtInFunctions[0].paramTypes = malloc(sizeof(DataType));
     builtInFunctions[0].paramTypes[0] = TYPE_INT;
     builtInFunctions[0].paramNames = malloc(sizeof(char *));
-    builtInFunctions[0].paramNames[0] = strdup("message");
+    builtInFunctions[0].paramNames[0] = strdup("value");
 
     builtInFunctions[1].paramTypes = malloc(sizeof(DataType));
     builtInFunctions[1].paramTypes[0] = TYPE_STRING;
@@ -68,6 +76,11 @@ static void initBuiltInsParams() {
     builtInFunctions[3].paramTypes[0] = TYPE_BOOL;
     builtInFunctions[3].paramNames = malloc(sizeof(char *));
     builtInFunctions[3].paramNames[0] = strdup("value");
+
+    builtInFunctions[4].paramTypes = malloc(sizeof(DataType));
+    builtInFunctions[4].paramTypes[0] = TYPE_DOUBLE;
+    builtInFunctions[4].paramNames = malloc(sizeof(char *));
+    builtInFunctions[4].paramNames[0] = strdup("value");
 
     builtInsInit = 1;
 }

@@ -7,7 +7,6 @@
 </p>
 <p align="center">
   <a href="#why">Why?</a> •
-  <a href="#language-goals">Goals</a> •
   <a href="#performance-architecture">Performance</a> •
   <a href="#getting-started">Getting Started</a> •
   <a href="#usage">Usage</a>
@@ -17,40 +16,31 @@
 
 ## Introduction
 
-Orn is a strongly typed programming language designed for **performance** and **clarity**. Inspired by TypeScript's approach to bringing type safety to dynamic languages, Orn aims to make low-level programming more accessible with modern type annotations and clear syntax. Its primary goals are **fast compilation**, **precise error feedback**, and a **clean, maintainable architecture**.
+Apart from learning how compilers work because I love understanding how things run under the hood my idea with Orn is to create a strongly typed programming language with a clean and friendly syntax. Something that feels like TypeScript but also gives you the tools to work low-level with pointers and manual memory management
 
-The syntax is designed to be approachable for developers coming from high-level languages while providing direct control over low-level operations. The long-term vision is to evolve into a fully **object-oriented language**.
+I also want fast compilation and great error feedback because clear errors save time and make development smoother instead of spending hours trying to figure out some cryptic Exxxx message
+
+Right now Orn looks more like a scripting language with an imperative style but in the future I would love to add OOP like TypeScript does. It is far from done but that is the plan
 
 ---
 
-## Why?
+## Why
 
-Many low-level languages have steep learning curves that intimidate developers from high-level backgrounds. Orn bridges this gap by offering:
+Many low-level languages have steep learning curves that intimidate developers coming from high-level backgrounds. Orn tries to bridge that gap by offering
 
-* **Modern syntax** – TypeScript-style type annotations with `const` and `let`
-* **Clear error feedback** – Error messages are precise and tell you exactly how to fix problems
+* **Modern syntax** – TypeScript-style type annotations with `const` and `let` that add a new layer of safety
+* **Clear error feedback** – Error messages are precise and tell you exactly what went wrong
 * **Low-level control** – Direct access to memory and performance-critical operations
-* **Fast compile times** – Efficient compilation pipeline for quick iteration
-* **Strong type guarantees** – Minimize runtime surprises with a robust type system
-* **Gradual learning curve** – Start with high-level concepts, dive into low-level details as needed
-
----
-
-## Language Goals
-
-* **🎯 Clear Error Feedback** – Errors are actionable and easy to understand
-* **⚡ Fast Compilation** – Quick iteration cycles for development
-* **🔒 Type Safety** – Strong typing at the core
-* **🚀 Path to OOP** – Current syntax is just the beginning
-* **🛠️ Simplicity First** – Minimalism without sacrificing power
+* **Compiled** – Runs fast instead of being interpreted like `js`, `ts` or `python`
+* **Strong type guarantees** – Minimize runtime surprises with a solid type system
+* **Gradual learning curve** – Start with high-level concepts and dive into low-level details as needed
 
 ---
 
 ## Performance Architecture
 
 Orn uses a **zero-copy reference design** inspired by production compilers like Clang and Rust:
-
-```md
+```
 Source Buffer (one malloc)
     ↓
 Tokens (ptr+len references)
@@ -67,61 +57,52 @@ Assembly (new strings)
 ```
 
 **Benefits:**
-
-* Single source allocation, thousands fewer mallocs
-* No duplicate string storage throughout pipeline
-* Better memory locality and faster compilation
-* References become copies only in final assembly output
+- Single source allocation, thousands fewer mallocs
+- No duplicate string storage throughout pipeline
+- Better memory locality and faster compilation
+- References become copies only in final assembly output
 
 Traditional compilers duplicate every identifier dozens of times. Orn references the original buffer until code generation.
 
 ---
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
-You'll need:
+* GCC or Clang
+* CMake (3.10+)
+* Git
 
-* **[GCC](https://gcc.gnu.org/)** or **[Clang](https://clang.llvm.org/)** – C compiler
-* **[CMake](https://cmake.org/)** (3.10+) – Build system
-* **[Git](https://git-scm.com/)** – Version control
-* **[Valgrind](https://valgrind.org/)** *(optional)* – Memory debugging
+### Build
 
 ### Installation
-
 ```bash
-# Clone the repository
-git clone https://github.com/Blopaa/Orn.git
+git clone https://github.com/pabloosabaterr/Orn.git
 cd Orn
-
-# Build the project
 mkdir build && cd build
 cmake ..
 cmake --build .
 ```
 
 You can now run Orn on your own programs:
-
 ```bash
 ./orn program.orn
 ```
 
 Or, for verbose compilation output:
-
 ```bash
-./orn --verbose program.orn
+./orn --help
 ```
 
-This will perform lexical analysis, parsing, semantic analysis, and IR generation.
+This will show all available options and usage examples.
 
 ---
 
 ## Usage
 
 ### Example Program
-
-```ts
+```typescript
 const x: int = 42;
 let rate: float = 3.14;
 const msg: string = "Hello, World!";
@@ -142,7 +123,8 @@ fn add(a: int, b: int) -> int {
     return a + b;
 }
 
-print(add(3, 5));
+const result: int = fibonacci(10);
+print(result);
 ```
 
 ### Error Example
@@ -177,18 +159,9 @@ error [E1001]: mismatched types (x)
 
 We welcome contributors and feedback!
 
-* Visit the [GitHub repository](https://github.com/Blopaa/Orn)
-* Check the [contribution guidelines](CONTRIBUTING.md)
-* Report issues on the [issue tracker](https://github.com/Blopaa/Orn/issues)
-* Explore the [roadmap](https://github.com/Blopaa/Orn/projects)
+* Visit the [GitHub repository](https://github.com/pabloosabaterr/Orn)
+* Report issues on the [issue tracker](https://github.com/pabloosabaterr/Orn/issues)
 * Join our [Discord](https://discord.gg/E8qqVC9jcf)
-* Check [Benchmark](https://github.com/Blopaa/Orn/tree/main/benchmarks/benchmark.md) info
-
----
-
-### Attribution
-
-This README's structure and presentation were inspired by [TheDevConnor / Luma](https://github.com/TheDevConnor/luma).
 
 ---
 

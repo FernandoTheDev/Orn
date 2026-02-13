@@ -22,6 +22,15 @@
 struct TypeCheckContext;
 typedef struct TypeCheckContext *TypeCheckContext;
 
+struct SymbolTable;
+typedef struct SymbolTable *SymbolTable;
+
+struct StructType;
+typedef struct StructType *StructType;
+
+struct Symbol;
+typedef struct Symbol *Symbol;
+
 /**
  * @brief Data type enumeration for type checking and validation.
  *
@@ -36,7 +45,8 @@ typedef enum {
     TYPE_BOOL,
     TYPE_VOID,
     TYPE_STRUCT,
-    TYPE_ARRAY,
+    TYPE_POINTER,
+    TYPE_NULL,
     TYPE_UNKNOWN
 } DataType;
 
@@ -46,17 +56,18 @@ typedef enum {
     SYMBOL_TYPE,
 } SymbolType;
 
-typedef struct FunctionParameter {
-    const char *nameStart;
-    size_t nameLength;
+typedef struct {
     DataType type;
-    struct FunctionParameter *next;
-} *FunctionParameter;
+    StructType structType;
+} ResolvedType;
 
 typedef struct StructField {
     const char *nameStart;
     size_t nameLength;
     DataType type;
+    StructType structType; // only if type == TYPE_STRUCT
+    int isPointer;
+    int pointerLevel;
     size_t offset;
     struct StructField *next;
 } * StructField;
@@ -68,6 +79,15 @@ typedef struct StructType {
     size_t size;
     int fieldCount;
 } *StructType;
+
+typedef struct FunctionParameter {
+    const char *nameStart;
+    size_t nameLength;
+    DataType type;
+    int isPointer;
+    int pointerLevel;
+    struct FunctionParameter *next;
+} *FunctionParameter;
 
 // gotta redo this with unions
 
@@ -83,12 +103,17 @@ typedef struct Symbol {
     uint16_t nameLength;
     SymbolType symbolType;
     DataType type;
+    StructType structType; // only for structs
     union {
-        StructType structType; // only for structs
         struct {
             // only for functions
             FunctionParameter parameters;
+            Symbol returnedVar;
             int paramCount;
+            int returnsPointer;     
+            int returnPointerLevel;  
+            SymbolTable functionScope;
+            DataType returnBaseType;
         };
         struct {
             // only for vars
@@ -98,6 +123,10 @@ typedef struct Symbol {
             int staticSize;
             int constVal;
             int hasConstVal;
+            int hasConstMemRef;
+            int isPointer;
+            int pointerLvl;
+            DataType baseType;
         };
     };
     int line;
@@ -116,20 +145,17 @@ typedef struct Symbol {
 typedef struct SymbolTable {
     Symbol symbols;
     struct SymbolTable *parent;
+    struct SymbolTable *child;
+    struct SymbolTable *brother;
     int scope;
     int symbolCount;
 } *SymbolTable;
-
-Symbol createSymbol(ASTNode node, DataType type);
 
 void freeSymbol(Symbol symbol);
 
 SymbolTable createSymbolTable(SymbolTable parent);
 
 void freeSymbolTable(SymbolTable symbolTable);
-
-Symbol addSymbolFromString(SymbolTable table, const char *name, DataType type,
-                          int line, int column);
 
 Symbol addSymbolFromNode(SymbolTable table, ASTNode node, DataType type) ;
 

@@ -30,14 +30,16 @@ typedef enum {
     IR_GE,
 
     IR_COPY,
-    IR_LOAD,
-    IR_STORE,
-    IR_ADDR,
+    IR_LOAD_PARAM,
 
     IR_REQ_MEM,
     IR_POINTER_LOAD,
     IR_POINTER_STORE,
+    IR_ADDROF,
+    IR_DEREF,
+    IR_STORE,
 
+    IR_ALLOC_STRUCT,
     IR_MEMBER_LOAD,
     IR_MEMBER_STORE,
 
@@ -57,6 +59,14 @@ typedef enum {
 
     IR_CAST
 } IrOpCode;
+
+typedef struct {
+    const char *baseName;
+    size_t baseNameLen;
+    int totalOffset;
+    StructType finalStructType;
+    DataType fieldType;
+} MemberAccessInfo;
 
 typedef enum {
     OPERAND_NONE,

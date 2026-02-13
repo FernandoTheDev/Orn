@@ -77,6 +77,9 @@ typedef enum {
     // Special nodes
     null_NODE,
     PROGRAM,
+    IMPORTDEC,
+    EXPORTDEC,
+    FROMDEC,
 
     //array types
     ARRAY_ACCESS,
@@ -89,6 +92,9 @@ typedef enum {
     REF_VOID,
     REF_DOUBLE,
     REF_CUSTOM,
+    POINTER,
+    MEMADDRS,
+    NULL_LIT,
 
     // Variable definitions
     STRUCT_VARIABLE_DEFINITION,
@@ -123,6 +129,7 @@ typedef enum {
     BITWISE_XOR,
     BITWISE_LSHIFT,
     BITWISE_RSHIFT,
+    BITWISE_NOT,
 
     // Binary arithmetic operators
     ADD_OP,
@@ -178,9 +185,11 @@ typedef enum {
     RETURN_TYPE,
 
     // Structs
+    STRUCT_LIT,
     STRUCT_DEFINITION,
     STRUCT_FIELD_LIST,
     STRUCT_FIELD,
+    STRUCT_FIELD_LIT,
     MEMBER_ACCESS,
 } NodeTypes;
 
@@ -214,6 +223,7 @@ static const NodeTypeMap nodeTypeMapping[] = {
     {BITWISE_XOR, "BITWISE_XOR"},
     {BITWISE_LSHIFT, "BITWISE_LSHIFT"},
     {BITWISE_RSHIFT, "BITWISE_RSHIFT"},
+    {BITWISE_NOT, "BITWISE_NOT"},
     {ADD_OP, "ADD_OP"},
     {SUB_OP, "SUB_OP"},
     {MUL_OP, "MUL_OP"},
@@ -266,6 +276,13 @@ static const NodeTypeMap nodeTypeMapping[] = {
     {TERNARY_CONDITIONAL, "TERNARY_CONDITIONAL"},
     {TERNARY_IF_EXPR, "TERNARY_IF_EXPR"},
     {TERNARY_ELSE_EXPR, "TERNARY_ELSE_EXPR"},
+    {POINTER, "PTR"},
+    {MEMADDRS, "MEMREF"},
+    {NULL_LIT, "NULL"},
+    {IMPORTDEC, "IMPORT"},
+    {EXPORTDEC, "EXPORT"},
+    {STRUCT_LIT, "STRUCT_LIT"},
+    {STRUCT_FIELD_LIT, "FIELD_LIT"},
     {null_NODE, NULL} // Sentinel - must be last
 };
 
@@ -427,7 +444,6 @@ ASTNode parseLoop(TokenList* list, size_t* pos);
 ASTNode parseBlock(TokenList* list, size_t* pos);
 ASTNode parseIf(TokenList *list, size_t* pos);
 ASTNode parseBlockExpression(TokenList* list, size_t* pos);
-ASTNode parseConditional(TokenList* list, size_t* pos);
 ASTNode parseParameter(TokenList* list, size_t* pos);
 ASTNode parseArg(TokenList* list, size_t* pos);
 ASTNode parseCommaSeparatedLists(TokenList* list, size_t* pos, NodeTypes listType,
@@ -439,9 +455,13 @@ ASTNode parseExpressionStatement(TokenList* list, size_t* pos);
 ASTNode parseStruct(TokenList* list, size_t* pos);
 ASTNode parseStructField(TokenList* list, size_t* pos);
 NodeTypes getTypeNodeFromToken(TokenType type);
-ASTNode parseArrayDec(TokenList *list, size_t *pos, Token *tokType, Token *varName);
+ASTNode parseArrayDec(TokenList *list, size_t *pos, Token *varName);
 ASTNode parseArrLit(TokenList *list, size_t *pos);
+ASTNode parseStructLit(TokenList *list, size_t *pos);
 ASTNode parseArrayAccess(TokenList *list, size_t *pos, ASTNode arrNode);
+ASTNode parseImport(TokenList *list, size_t *pos);
+ASTNode parseExportFunction(TokenList* list, size_t* pos);
+ASTNode parseForLoop(TokenList *list, size_t *pos);
 
 // Public function prototypes
 ASTContext * ASTGenerator(TokenList* tokenList);
